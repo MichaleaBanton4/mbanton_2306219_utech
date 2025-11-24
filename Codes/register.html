@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+
+    <!-- External CSS -->
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+   <header class="header">
+    <div class="header-left">
+        <h1>Vibes and Veggies</h1>
+        <img src="/Assets/logo.jpg" alt="Logo" class="logo">
+    </div>
+
+    <div class="header-right">
+    </div>
+</header>
+
+    <main class="container">
+        <form id="registerForm" class="login-box">
+
+            <h2>Create Account</h2>
+
+            <!-- Full Name -->
+            <label for="fullname">Full Name</label>
+            <input type="text" id="fullname" class="input-field" placeholder="Enter full name">
+
+            <!-- Username -->
+            <label for="regUsername">Username</label>
+            <input type="text" id="regUsername" class="input-field" placeholder="Choose username">
+
+            <!-- Email -->
+            <label for="email">Email</label>
+            <input type="email" id="email" class="input-field" placeholder="Enter email">
+
+            <!-- Password -->
+            <label for="regPassword">Password</label>
+            <input type="password" id="regPassword" class="input-field" placeholder="Create password">
+
+            <!-- Confirm Password -->
+            <label for="confirmPassword">Confirm Password</label>
+            <input type="password" id="confirmPassword" class="input-field" placeholder="Confirm password">
+
+            <!-- Error Message -->
+            <p id="regErrorMsg" class="error"></p>
+
+            <button id="registerBtn" type="button" class="btn">Register</button>
+
+            <p class="small-text">
+                Already have an account? <a href="login.html">Login here</a>
+            </p>
+
+        </form>
+    </main>
+
+    <footer class="footer">
+        <p>© 2025 Vibes and Veggies</p>
+    </footer>
+
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const registerBtn = document.getElementById("registerBtn");
+    const fullname = document.getElementById("fullname");
+    const username = document.getElementById("regUsername");
+    const email = document.getElementById("email");
+    const pass = document.getElementById("regPassword");
+    const confirmPass = document.getElementById("confirmPassword");
+    const errorMsg = document.getElementById("regErrorMsg");
+
+    registerBtn.addEventListener("click", function () {
+
+        if (fullname.value === "" ||
+            username.value === "" ||
+            email.value === "" ||
+            pass.value === "" ||
+            confirmPass.value === "") {
+
+            errorMsg.textContent = "All fields must be filled out.";
+            errorMsg.style.color = "red";
+            return;
+        }
+
+        if (pass.value !== confirmPass.value) {
+            errorMsg.textContent = "Passwords do not match.";
+            errorMsg.style.color = "red";
+            return;
+        }
+
+
+
+        // Save username and password to localStorage
+        localStorage.setItem("username", username.value);
+        localStorage.setItem("password", pass.value);
+        localStorage.setItem("fullname", fullname.value);
+        localStorage.setItem("username", username.value);
+        localStorage.setItem("email", email.value);
+
+
+        errorMsg.textContent = "Registration successful!";
+        errorMsg.style.color = "green";
+
+        // Optionally clear fields
+        fullname.value = "";
+        username.value = "";
+        email.value = "";
+        pass.value = "";
+        confirmPass.value = "";
+    });
+
+
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Profile</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="header-left">
+        <h1>Vibes and Veggies</h1>
+        <img src="/Assets/logo.jpg" alt="Logo" class="logo">
+    </div>
+
+    <div class="header-right">
+        <a href="products.html" class="btn">Back to Products</a>
+    </div>
+</header>
+>
+
+<div class="checkout-page" style="text-align:center;">
+
+    <div class="profile-card" id="profileCard">
+        <h2>Your Profile</h2>
+        <p><strong>Full Name:</strong> <span id="profileFullName"></span></p>
+        <p><strong>Username:</strong> <span id="profileUsername"></span></p>
+        <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+
+        <!-- Sign Out Button -->
+        <button id="signOutBtn" class="btn" style="margin-top:15px;">Sign Out</button>
+    </div>
+
+    <div class="profile-card order-history" id="orderHistory">
+        <h3>Order History</h3>
+        <div id="ordersContainer">
+            <p>No orders yet.</p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Load user info from localStorage
+    const fullName = localStorage.getItem("fullname") || "N/A";
+    const username = localStorage.getItem("username") || "N/A";
+    const email = localStorage.getItem("email") || "N/A";
+
+    document.getElementById("profileFullName").textContent = fullName;
+    document.getElementById("profileUsername").textContent = username;
+    document.getElementById("profileEmail").textContent = email;
+
+    // Load order history
+    const ordersContainer = document.getElementById("ordersContainer");
+    const orderHistory = JSON.parse(localStorage.getItem("orderHistory")) || [];
+
+    if (orderHistory.length > 0) {
+        ordersContainer.innerHTML = "";
+        orderHistory.reverse().forEach(order => {
+            const div = document.createElement("div");
+            div.classList.add("order-item");
+            div.innerHTML = `
+                <p><strong>Order #:</strong> ${order.orderNum}</p>
+                <p><strong>Date:</strong> ${new Date(order.date).toLocaleString()}</p>
+                <p><strong>Items:</strong></p>
+                <ul>
+                    ${order.cart.map(item => `<li>${item.name} (x${item.quantity}) - $${(item.price * item.quantity).toFixed(2)}</li>`).join('')}
+                </ul>
+                <p><strong>Total:</strong> $${order.total.toFixed(2)}</p>
+            `;
+            ordersContainer.appendChild(div);
+        });
+    }
+
+    // Sign Out functionality
+    document.getElementById("signOutBtn").addEventListener("click", function() {
+        localStorage.removeItem("username");
+        localStorage.removeItem("password");
+        localStorage.removeItem("fullname");
+        localStorage.removeItem("email");
+        // Keep orderHistory intact
+
+        // Redirect to login page
+        window.location.href = "login.html";
+    });
+});
+</script>
+
+</body>
+</html>

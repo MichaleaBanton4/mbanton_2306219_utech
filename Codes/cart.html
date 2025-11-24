@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart</title>
+
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="cart.css">
+</head>
+<body>
+
+<header class="header">
+    <h1>Your Cart</h1>
+    <a href="products.html" class="cart-back">⬅ Back</a>
+</header>
+
+<main class="cart-page">
+
+    <h2 class="cart-title">Items in Your Cart</h2>
+
+    <div id="cartItems" class="cart-items"></div>
+
+    <div class="cart-summary">
+        <p>Subtotal: $<span id="subTotal">0.00</span></p>
+        <p>Discount (10%): $<span id="discount">0.00</span></p>
+        <p>Tax (5%): $<span id="tax">0.00</span></p>
+        <h3>Total: $<span id="totalPrice">0.00</span></h3>
+        
+        <button id="checkoutBtn" class="btn">Proceed to Checkout</button>
+    </div>
+
+</main>
+
+<footer class="footer">
+    <p>© 2025 Vibes and Veggies</p>
+</footer>
+
+<script>
+const cartContainer = document.getElementById("cartItems");
+const subTotalEl = document.getElementById("subTotal");
+const discountEl = document.getElementById("discount");
+const taxEl = document.getElementById("tax");
+const totalPriceEl = document.getElementById("totalPrice");
+
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+function renderCart() {
+    cartContainer.innerHTML = "";
+    // if cart has 0 items the user will see that the cart is empty 
+    if (cart.length === 0) {
+        cartContainer.innerHTML = "<p>Your cart is empty.</p>";
+        subTotalEl.textContent = "0.00";
+        discountEl.textContent = "0.00";
+        taxEl.textContent = "0.00";
+        totalPriceEl.textContent = "0.00";
+        return;
+    }
+
+    let subtotal = 0;
+
+    cart.forEach((item, index) => {
+        const itemTotal = item.price * item.quantity;
+        subtotal += itemTotal;
+
+        const div = document.createElement("div");
+        div.className = "cart-item";
+        div.innerHTML = `
+            <p><strong>${item.name}</strong></p>
+            <p>Price: $${item.price.toFixed(2)}</p>
+            <p>Quantity: ${item.quantity}</p>
+            <p>Subtotal: $${itemTotal.toFixed(2)}</p>
+            <button class="remove-btn" data-index="${index}">Remove</button>
+            <hr>
+        `;
+
+        cartContainer.appendChild(div);
+    });
+
+    const discount = subtotal * 0.10; // gives 10% discount
+    const tax = (subtotal - discount) * 0.05; // gives 5% tax
+    const total = subtotal - discount + tax;
+
+    subTotalEl.textContent = subtotal.toFixed(2);
+    discountEl.textContent = discount.toFixed(2);
+    taxEl.textContent = tax.toFixed(2);
+    totalPriceEl.textContent = total.toFixed(2);
+
+    // Remove buttons
+    document.querySelectorAll(".remove-btn").forEach(btn => {
+        btn.addEventListener("click", function() {
+            const i = this.getAttribute("data-index");
+
+            // Remove 1 quantity or delete item from cart
+            if (cart[i].quantity > 1) {
+                cart[i].quantity--;
+            } else {
+                cart.splice(i, 1);
+            }
+
+            localStorage.setItem("cart", JSON.stringify(cart));
+            renderCart();
+        });
+    });
+}
+
+renderCart();
+
+document.getElementById("checkoutBtn").addEventListener("click", function() {
+    window.location.href = "checkout.html";
+});
+</script>
+
+</body>
+</html>

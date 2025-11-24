@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Checkout</title>
+
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="checkout.css">
+
+    <!-- jsPDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<header class="header">
+    <h1>Checkout</h1>
+    <a href="cart.html" class="back-btn">⬅ Back</a>
+</header>
+
+<main class="checkout-page">
+
+    <h2 class="checkout-title">Order Summary</h2>
+
+    <div id="orderSummary" class="order-summary"></div>
+
+    <div class="checkout-form">
+        <h3>Enter Your Details</h3>
+
+        <label>Name:</label>
+        <input type="text" id="custName" class="input-field" placeholder="John Doe">
+
+        <label>Email:</label>
+        <input type="email" id="custEmail" class="input-field" placeholder="example@gmail.com">
+
+        <label>Address:</label>
+        <textarea id="custAddress" class="input-field" placeholder="Your delivery address"></textarea>
+
+        <h3>Payment Information</h3>
+
+        <label>Card Number:</label>
+        <input type="text" id="cardNumber" maxlength="16" class="input-field" placeholder="1234567891011121">
+
+        <label>Expiry (MM/YY):</label>
+        <input type="text" id="cardExpiry" maxlength="5" class="input-field" placeholder="MM/YY">
+
+        <label>CVV:</label>
+        <input type="password" id="cardCVV" maxlength="4" class="input-field" placeholder="123">
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:15px;">
+            <button id="clearCartBtn" class="btn">Clear All</button>
+            <button id="placeOrderBtn" class="btn">Confirm Order</button>
+            <button id="cancelBtn" class="btn">Cancel</button>
+        </div>
+    </div>
+
+</main>
+
+<footer class="footer">
+    <p>© 2025 Vibes and Veggies</p>
+</footer>
+
+<script>
+// Load cart
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+let summaryDiv = document.getElementById("orderSummary");
+let subtotal = 0;
+
+// Show order summary with subtotal, discount, tax, total
+function renderSummary() {
+    summaryDiv.innerHTML = "";
+    subtotal = 0;
+
+    if(cart.length === 0) {
+        summaryDiv.innerHTML = "<p>Your cart is empty.</p>";
+        return;
+    }
+
+    cart.forEach(item => {
+        let itemTotal = item.price * item.quantity;
+        subtotal += itemTotal;
+
+        let p = document.createElement("p");
+        p.textContent = `${item.name} (x${item.quantity}) - $${itemTotal.toFixed(2)}`;
+        summaryDiv.appendChild(p);
+    });
+
+    const discount = subtotal * 0.10;
+    const tax = (subtotal - discount) * 0.05;
+    const total = subtotal - discount + tax;
+
+    summaryDiv.innerHTML += `
+        <hr>
+        <p>Subtotal: $${subtotal.toFixed(2)}</p>
+        <p>Discount (10%): -$${discount.toFixed(2)}</p>
+        <p>Tax (5%): +$${tax.toFixed(2)}</p>
+        <p><strong>Total: $${total.toFixed(2)}</strong></p>
+    `;
+}
+
+renderSummary();
+
+// CLEAR CART
+document.getElementById("clearCartBtn").addEventListener("click", () => {
+    if(confirm("Are you sure you want to clear all items?")) {
+        cart = [];
+        localStorage.removeItem("cart");
+        renderSummary();
+    }
+});
+
+// CANCEL BUTTON
+document.getElementById("cancelBtn").addEventListener("click", () => {
+    window.location.href = "cart.html";
+});
+
+// PLACE ORDER
+document.getElementById("placeOrderBtn").addEventListener("click", function () {
+    let name = document.getElementById("custName").value;
+    let email = document.getElementById("custEmail").value;
+    let address = document.getElementById("custAddress").value;
+    let card = document.getElementById("cardNumber").value;
+    let expiry = document.getElementById("cardExpiry").value;
+    let cvv = document.getElementById("cardCVV").value;
+
+    // Basic validation
+    if (!name || !email || !address || !card || !expiry || !cvv) {
+        alert("Please fill out all fields!");
+        return;
+    }
+    if (card.length !== 16) { alert("Card number must be 16 digits."); return; }
+    if (!/^\d{2}\/\d{2}$/.test(expiry)) { alert("Expiry must be in MM/YY format."); return; }
+
+    let [mm, yy] = expiry.split("/");
+    let expiryFormatted = `${mm}/${yy}`;
+    let last4 = card.slice(-4);
+    let masked = "**** **** **** " + last4;
+    let orderNum = "ORD" + Math.floor(Math.random() * 90000 + 10000);
+
+    const discount = subtotal * 0.10;
+    const tax = (subtotal - discount) * 0.05;
+    const total = subtotal - discount + tax;
+
+    // Build receipt
+    let receiptHTML = `
+        <div class="receipt-box">
+            <h2>Receipt</h2>
+            <p><strong>Order #:</strong> ${orderNum}</p>
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Address:</strong> ${address}</p>
+            <h3>Items:</h3>
+    `;
+
+    cart.forEach(item => {
+        receiptHTML += `<p>${item.name} (x${item.quantity}) - $${(item.price * item.quantity).toFixed(2)}</p>`;
+    });
+
+    receiptHTML += `
+        <hr>
+        <p>Subtotal: $${subtotal.toFixed(2)}</p>
+        <p>Discount (10%): -$${discount.toFixed(2)}</p>
+        <p>Tax (5%): +$${tax.toFixed(2)}</p>
+        <p><strong>Total: $${total.toFixed(2)}</strong></p>
+
+        <h3>Payment Info:</h3>
+        <p>Card: ${masked}</p>
+        <p>Expiry: ${expiryFormatted}</p>
+
+        <button class="btn" onclick="downloadPDF()">Download PDF Receipt</button>
+        <button class="btn" onclick="window.location.href='products.html'">Back to Products</button>
+    </div>
+    `;
+
+    // Hide form and summary
+    document.querySelector(".checkout-form").style.display = "none";
+    summaryDiv.style.display = "none";
+    document.querySelector(".checkout-title").textContent = "Receipt";
+    document.querySelector(".checkout-page").innerHTML += receiptHTML;
+
+    // Save receipt data for PDF
+    window.receiptData = { orderNum, name, email, address, masked, expiryFormatted, cart, total };
+
+    // Clear cart
+    localStorage.removeItem("cart");
+});
+
+// PDF DOWNLOAD
+function downloadPDF() {
+    const { jsPDF } = window.jspdf;
+    let pdf = new jsPDF();
+    let y = 10;
+    const r = window.receiptData;
+
+    pdf.setFontSize(16);
+    pdf.text("Order Receipt", 10, y); y += 10;
+
+    pdf.setFontSize(12);
+    pdf.text(`Order #: ${r.orderNum}`, 10, y); y+=8;
+    pdf.text(`Name: ${r.name}`, 10, y); y+=8;
+    pdf.text(`Email: ${r.email}`, 10, y); y+=8;
+    pdf.text(`Address: ${r.address}`, 10, y); y+=12;
+
+    pdf.text("Items:", 10, y); y+=8;
+    r.cart.forEach(item => {
+        pdf.text(`${item.name} (x${item.quantity}) - $${(item.price * item.quantity).toFixed(2)}`, 10, y);
+        y+=8;
+    });
+
+    y+=5;
+    pdf.text(`Total: $${r.total.toFixed(2)}`, 10, y); y+=10;
+    pdf.text("Payment Info:", 10, y); y+=8;
+    pdf.text(`Card: ${r.masked}`, 10, y); y+=8;
+    pdf.text(`Expiry: ${r.expiryFormatted}`, 10, y);
+
+    pdf.save("receipt.pdf");
+}
+</script>
+
+</body>
+</html>
